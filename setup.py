@@ -5,7 +5,7 @@ except ImportError:
 
 config = {
     'description': 'A Python module to make X-ray Spectral maps of Temperature, Density, and Entropy for Chandra Observations of Galaxy Clusters',
-    'author': 'Grant R. Tremblay & Dominic A. Eggerman',
+    'author': 'Grant R. Tremblay & Dominic E. Eggerman',
     'url': 'https://github.com/granttremblay/goodDog',
     'download_url': 'https://github.com/granttremblay/goodDog',
     'author_email': 'grant.tremblay@yale.edu',
