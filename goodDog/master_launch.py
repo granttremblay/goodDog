@@ -14,6 +14,7 @@ import filter_data #4
 import deflare #5
 import evt_filter #6
 import blank_sky #7
+import make_binmap #8
 
 ### Lists ###
 
@@ -21,6 +22,8 @@ import blank_sky #7
 obsID_li = [] #1
 ccd_id = [] #3
 times = [] #3
+coor_values = [] #8
+energy_li = [] #8
 
 ### Functions ###
 
@@ -54,3 +57,11 @@ bsky_organiser() #7
 get_evt2() #7
 evt2_pointer(obsID_li) #7
 aspect_sol(obsID_li) #7
+
+contbin_dir() #8
+coordinate_inp() #8
+energy_inp() #8
+reg_creator(energy_li, coor_values) #8
+contbinmask_file_check() #8
+farith() #8
+
