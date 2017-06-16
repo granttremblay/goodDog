@@ -1,25 +1,18 @@
 #!/usr/bin/env python
 
- ###																														  ###
-### Filtering the reprojected files in energy space and extracting background only lightcurve by excluding cluster and sources ###
- ###																														  ###
+from ciao_contrib.runtool import dmcopy
 
-# Filtering the files in energy space based on user input energies #
+# Filter the reprojected files in energy space #
 
-def espace_filt(obsid, ccd):
+def espace_filt(obsid_list, ccd_id, energy):
 
-	nrgy1 = raw_input("Input minimum energy filter value: ") # Allows specification of energy filter values
-	nrgy2 = raw_input("Input maximum energy filter value: ")
-	ccd_count = 0
-	for obs in obsid:
-		print "Performing dmcopy step for obsID %s to make efilter.fits file" % obs
-		dmcopy(infile='reprojected_data/%s_reproj_evt.fits[energy=%s:%s, ccd_id=%s]' % (obs, nrgy1, nrgy2, ccd[ccd_count]), outfile='reprojected_data/%s_efilter.fits' % obs, opt='all', clobber='yes') # dmcopy step to make efilter files
-		ccd_count += 1
+    for obs in obsid_list:
+        dmcopy(infile='reprojected_data/%s_reproj_evt.fits[energy=%s:%s, ccd_id=%s]' % (obs, energy[0], energy[1], ccd_id[obsid_list.index(obs)]), outfile='reprojected_data/%s_efilter.fits' % obs, opt='all', clobber='yes')
 
-# Excluding cluster from the background #
 
-def bkg_lightcurve(obsid):
+# Create background lightcurve #
 
-	for obs in obsid:
-		print "Performing dmcopy step for obsID %s to make background.fits file" % obs
-		dmcopy(infile='reprojected_data/%s_efilter.fits[exclude sky=region(cluster.reg)]' % obs, outfile='reprojected_data/%s_background.fits' % obs, opt='all', clobber='yes') # make background.fits files
+def bkg_lightcurve(obsid_list):
+
+    for obs in obsid_list:
+        dmcopy(infile='reprojected_data/%s_efilter.fits[exclude sky=region(cluster.reg)]' % obs, outfile='%s_background.fits' % obs, opt='all', clobber='yes')

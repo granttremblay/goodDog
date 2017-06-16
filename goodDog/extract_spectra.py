@@ -1,29 +1,35 @@
 #!/usr/bin/env python
 
+# Extract Spectra #
+
 import glob
 import os
 from ciao_contrib.runtool import specextract
 
-def extract_spec(obsid_list):
 
-	regions = glob.glob('xaf_*.reg') # get regions
-	for reg in regions:
-		for obs in obsid_list:
-			print('Extracting spectra for region: %s, obsid: %s ...' % (reg, obs))
-			root = reg[:-4] + '_' + obs
-			evt2_file = glob.glob('../../reprojected_data/' + str(obs) + '_reproj_evt.fits') # file for obsid
-			evt2_filter = evt2_file[0] + '[sky=region(%s)]' % reg # add xaf.reg filter
-			#bkg_file = '../../' + 'reprojected_data/' + obs + '_background.fits'
-			#bkg_filter = bkg_file + '[sky=region(%s)]' % reg # add xaf.reg filter
-			asp_file = glob.glob('../../reprojected_data/' + str(obs) + '.asol')
-			asp_file = asp_file[0] # Turn into string from glob list
-			bpix_file = glob.glob('../../reprojected_data/' + str(obs) + '.bpix')
-			bpix_file = bpix_file[0]
-			msk_file = glob.glob('../../reprojected_data/' + str(obs) + '.mask')
-			msk_file = msk_file[0]
-			os.system("punlearn specextract") # Reset specextract
-			specextract(infile=evt2_filter, outroot=root, asp=asp_file, badpixfile=bpix_file, mskfile=msk_file, weight='yes')
+# Extracting spectra for regions of the target #
+# Directory has been changed to spectral_maps/ #
 
-obsids = ['17218', '18689']
-extract_spec(obsids)
+def extract_spec(obsid_list, regions, evt2_file, wght):
 
+    for reg in regions:
+        for obs in obsid_list:
+            root = reg[:-4] + '_' + obs
+            # Check if spectra has been extracted for the region and obsid #
+            if os.path.isfile(root + '.pi') is False:
+                print('Extracting spectra for obsid %s/%s: Completed %s/%s regions' % (obsid_list.index(obs)+1, len(obsid_list), regions.index(reg)+1, len(regions)))
+                evt2 = glob.glob('../reprojected_data/' + str(obs) + evt2_file)  # evt file for obsid
+                evt2_filter = evt2[0] + '[sky=region(%s)]' % reg  # add xaf.reg filter
+                bkg_reg = glob.glob('../reprojected_data/background.reg')
+                bkg_filter = evt2[0] + '[sky=region(%s)]' % bkg_reg[0]  # using the reproj_evt file with the background region
+                asp_file = glob.glob('../reprojected_data/' + str(obs) + '.asol')
+                asp_file = asp_file[0]  # Turn into string from glob list
+                bpix_file = glob.glob('../reprojected_data/' + str(obs) + '.bpix')
+                bpix_file = bpix_file[0]
+                msk_file = glob.glob('../reprojected_data/' + str(obs) + '.mask')
+                msk_file = msk_file[0]
+                os.system("punlearn specextract")  # Reset specextract
+                # Extract spectra
+                specextract(infile=evt2_filter, outroot=root, bkgfile=bkg_filter, asp=asp_file, badpixfile=bpix_file, mskfile=msk_file, weight=wght)
+            else:
+                print('Already extracted spectra for %s/%s obsids in %s/%s regions' % (obsid_list.index(obs)+1, len(obsid_list), regions.index(reg)+1, len(regions)))
