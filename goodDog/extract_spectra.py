@@ -18,7 +18,7 @@ def multi(obsid_list, regions, evt2_file, wght, processes):
     p = Pool(int(processes))
     reg_no = [r[:-4] for r in regions]
     for obs in obsid_list:
-        print('Extracting spectra for regions in obsid %s' % obs)
+        print('ObsID: %s extracting...' % obs)
         info_list = [r + '_' + str(obs) + evt2_file + '_' + wght for r in reg_no]
         p.map(extract_multi, info_list)
         info_list = []
@@ -34,7 +34,9 @@ def extract_multi(info):
     evt2_file = '_' + info[3] + '_' + info[4]
     wght = info[5]
 
-    print('Extracting spectra for region %s...' % reg)
+    reg_total = len(glob.glob('xaf_*.reg'))
+    reg_done = len(glob.glob('xaf_*_%s.pi') % obs)
+    print('Completed %s/%s regions' % (reg_done, reg_total))
     if os.path.isfile(root + '.pi') is False:
         evt2_filter = '../reprojected_data/' + obs + evt2_file + '[sky=region(%s)]' % reg  # evt file for obsid with xaf.reg filter
         bkg_reg = '../reprojected_data/background.reg'
