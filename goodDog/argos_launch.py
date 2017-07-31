@@ -37,23 +37,28 @@ else:
     import sherpa.astro.ui as sherpa
 
 
-def Argos(directory, obsid_list, ccd_id, times, coord_values, energy, energy_eV, redshift, nH_Gal, obs_auto_sel, deflare_opt, large_source):
+def Argos(directory, obsid_list, energy, energy_eV, ccd_id, times, coord_values, redshift, nH_Gal, obs_auto_sel, multiprocessing, processes, deflare_opt, large_source, wght):
 
     """
     Inputs: directory - Directory for the work. Default is current. Change with options when launching script.
             obsid_list - A list of the obsids. Selected after launch.
+            energy - The energy constraints. Default is 0.5 - 7.0 KeV. Change with options when launching script.
+            energy_eV - Same as energy but in eV
             ccd_id - A list of the ccd_ids whose index match to the that of the obsid list. Automatically found when running script.
             times - A list of the times to filter the observations if deflare is required. Found automatically.
             coord_values - The coordinates of the contbin region where spectral maps will be created. Found automatically after contbin box is created.
-            energy - The energy constraints. Default is 0.5 - 7.0 KeV. Change with options when launching script.
             redshift - Redshift of the source. Taken from command line input.
             nH_Gal - Galactic nH (10^22 cm^-2). Taken from command line input.
+            obs_auto_sel - Default = False. If True will automatically select obsids from working directory.
+            multiprocessing - Default = True. Runs multiprocessing on spectral extraction.
+            processes - Number of processes for multiprocessing.
             deflare_opt - Default = False. If True will run deflaring.
             large_source - Default = False. If True will create blank sky backgrounds for an extended source.
+            wght - Default = 'no'. Weighting of arfs for extracting spectra.
 
     #####
 
-    The final spectral maps are outputted to the final_maps folder.
+    Final spectral maps are outputted to the final_maps folder.
     """
 
     # Change into desired directory
@@ -129,7 +134,10 @@ def Argos(directory, obsid_list, ccd_id, times, coord_values, energy, energy_eV,
     os.chdir(directory + '/spectral_maps/')
     regions = glob.glob('xaf_*.reg')  # Get regions
     regions.sort()
-    extract_spectra.extract_spec(obsid_list, regions, evt2_file, wght)
+    if multiprocessing:
+        extract_spectra.multi(obsid_list, regions, evt2_file, wght, processes)
+    else:
+        extract_spectra.extract_spec(obsid_list, regions, evt2_file, wght)
     fit_spectra.fit_sherpa(obsid_list, redshift, nH_Gal, energy)
     paint_images.paint_spectra_to_map(regions)
     os.chdir(directory)
@@ -149,6 +157,7 @@ if __name__ == '__main__':
     parser.add_option('--deflare', action='store_true', dest='deflare', help='Deflare the observation', default=False)
     parser.add_option('--bsky', action='store_true', dest='bsky', help='Make blank sky background (if source occupies most of the chip)', default=False)
     parser.add_option('--weight', action='store_true', dest='wght', help='Generate weighted arfs during specextract (source with large angular size)', default=False)
+    parser.add_option('--multi', action='store_true', dest='multi', help='Disable multiprocessing for extracting spectra (not recommended. Default = True)', default=True)
     (options, args) = parser.parse_args()
     if len(args) == 2:
         # Parameter Lists #
@@ -159,21 +168,22 @@ if __name__ == '__main__':
         times = []
         coord_values = []
 
-        # Get parameters from input #
-        redshift = args[0]
-        nH_Gal = args[1]
-
         # Get directory #
         dir_temp = options.directory
         os.chdir(dir_temp)
         directory = os.getcwd()
 
+        # Get parameters from input #
+        redshift = args[0]
+        nH_Gal = args[1]
+
         # Get options #
-        define_energy = options.define_e
         obs_auto_sel = options.obs_auto
+        define_energy = options.define_e
         deflare_opt = options.deflare
         large_source = options.bsky
         weight_arf = options.wght
+        multiprocessing = options.multi
 
         # Get energy #
         if define_energy is False:
@@ -183,6 +193,12 @@ if __name__ == '__main__':
         for e in energy:  # get energy in eV
             energy_eV.append(int(float(e)*1000))
 
+        # Get processes #
+        if multiprocessing:
+            processes = raw_input('Enter number of processes for multiprocessing: ')
+        else:
+            pass
+
         # Get weight #
         if weight_arf is True:
             wght = 'yes'
@@ -190,7 +206,7 @@ if __name__ == '__main__':
             wght = 'no'
 
         # Run Argos #
-        Argos(directory, obsid_list, ccd_id, times, coord_values, energy, energy_eV, redshift, nH_Gal, obs_auto_sel, deflare_opt, large_source)
+        Argos(directory, obsid_list, energy, energy_eV, ccd_id, times, coord_values, redshift, nH_Gal, obs_auto_sel, multiprocessing, processes, deflare_opt, large_source, wght)
 
     else:
         parser.print_help()
