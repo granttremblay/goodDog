@@ -35,7 +35,7 @@ def extract_multi(info):
     wght = info[5]
 
     reg_total = len(glob.glob('xaf_*.reg'))
-    reg_done = len(glob.glob('xaf_*_%s.pi') % obs)
+    reg_done = len(glob.glob('xaf_*_%s.pi') % str(obs))
     print('Completed %s/%s regions' % (reg_done, reg_total))
     if os.path.isfile(root + '.pi') is False:
         evt2_filter = '../reprojected_data/' + obs + evt2_file + '[sky=region(%s)]' % reg  # evt file for obsid with xaf.reg filter
